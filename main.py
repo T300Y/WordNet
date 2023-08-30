@@ -225,8 +225,11 @@ def embedded_word(word, dictionary):
     for i in range(word_length):
         for j in range(i + 1, word_length + 1):
             subword = word[i:j]
-            if subword in dictionary:
-                score += 10
+            if subword in dictionary and subword != word:
+                if dictionary[subword]:
+                    print(subword)
+                    print(dictionary[subword])
+                    score += 10
     
     return score
 if __name__ == '__main__':
