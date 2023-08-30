@@ -154,8 +154,21 @@ def main():
 
     pygame.quit()
 def random_letter():
-    alphabet = list(string.ascii_lowercase)
-    return alphabet[random.randint(0, len(alphabet) - 1)]
+    random = 0
+    ranges = {
+    'a': 8167,  'b': 9659,  'c': 12441, 'd': 16694,
+    'e': 29396, 'f': 31624, 'g': 33639, 'h': 39733,
+    'i': 46699, 'j': 46852, 'k': 47624, 'l': 51649,
+    'm': 54055, 'n': 60804, 'o': 68311, 'p': 70240,
+    'q': 70335, 'r': 76322, 's': 82649, 't': 91705,
+    'u': 94463, 'v': 95441, 'w': 97801, 'x': 97951,
+    'y': 99925, 'z': 100000
+    }
+    random = random.randint(0,100000)
+    for letter in alphabet:
+        if random< alphabet[letter]:
+            print(letter)
+            return letter
 
 def letter_generator(array_of_sprites, no_of_sprites):
     global all_sprites
