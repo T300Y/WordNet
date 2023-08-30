@@ -3,7 +3,7 @@ import string
 import random
 import math
 # Globals
-WIDTH, HEIGHT = 900, 500
+WIDTH, HEIGHT = 1920, 1080
 FPS = 60
 BLACK = (0, 0, 0)
 
@@ -85,7 +85,7 @@ class TextSprite(pygame.sprite.Sprite):
         if not self.selected:
             self.draw_circle = False
 
-def draw_window(selected_sprites):
+def draw_window(selected_sprites, score):
     WIN.fill(BLACK)
     all_sprites.update()
     all_sprites.draw(WIN)
@@ -98,11 +98,21 @@ def draw_window(selected_sprites):
     selected_text_rect = selected_text_render.get_rect(center=(WIDTH // 2, 30))
     WIN.blit(selected_text_render, selected_text_rect)
 
+    # Display the score
+    score_font = pygame.font.SysFont("arial", 24)
+    score_text = f"Score: {score}"
+    score_text_render = score_font.render(score_text, True, (255, 255, 255))
+    score_text_rect = score_text_render.get_rect(topright=(WIDTH - 20, 20))
+    WIN.blit(score_text_render, score_text_rect)
+
+    pygame.display.flip()
     pygame.display.flip()
 def main():
+    dictionary = read_dict()
     array_of_sprites = []
     no_active_letters = 0
     selected_sprites = []
+    score = 0  # Initialize score to 0
 
     clock = pygame.time.Clock()
     run = True
@@ -123,11 +133,24 @@ def main():
                         else:
                             selected_sprites.append(sprite)
                             sprite.toggle_selected()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                # Check if selected letters form a valid word
+                selected_text = ''.join([sprite.text for sprite in selected_sprites])
+                if selected_text in dictionary and not dictionary[selected_text]:
+                    for sprite in selected_sprites:
+                        sprite.toggle_selected()
+                        all_sprites.remove(sprite)  # Remove the sprite from the group
+                    dictionary[selected_text] = True
+                    selected_sprites.clear()
+                    score += word_score(selected_text, dictionary)  # Increment score for correct word
+                else:
+                    selected_sprites.clear()
+                    score = max(0, score - 1)  # Decrease score for incorrect word, but not below 0
 
         if len(array_of_sprites) < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters)
 
-        draw_window(selected_sprites)
+        draw_window(selected_sprites, score)  # Pass the score to the draw_window function
 
     pygame.quit()
 def random_letter():
@@ -156,5 +179,55 @@ def letter_generator(array_of_sprites, no_of_sprites):
             break
 
     return array_of_sprites, no_of_sprites
+
+def read_dict():
+    with open("words.txt") as file:
+        lines=(file.readlines())
+        lines = {(line.replace("\n", "")):False for line in lines}
+    file.close()
+    return lines
+
+def word_score(word, dictionary):
+    points = 0
+    points += len(word)
+    print(points)
+    #points *= (backwards_score(word, dictionary)* is_palindrome(word,dictionary) * is_rotatable(word, dictionary))
+    print(points)
+    points += embedded_word(word, dictionary)
+    print(points)
+    return points
+    
+    
+def backwards_score(word, dictionary):
+    word = word[::-1]
+    if word in dictionary:
+        return 2
+    else:
+        return 1
+    
+def is_palindrome(word, dictionary):
+    palindrome = word[::-1]
+    if palindrome == word:
+        return 5
+    else:
+        return 1
+def is_rotatable(word, dictionary):
+    new_word = word[1:] + word[0]
+    if new_word in dictionary:
+        return 10
+    else:
+        return 1
+            
+def embedded_word(word, dictionary):
+    score = 0
+    word_length = len(word)
+    
+    for i in range(word_length):
+        for j in range(i + 1, word_length + 1):
+            subword = word[i:j]
+            if subword in dictionary:
+                score += 10
+    
+    return score
 if __name__ == '__main__':
     main()
