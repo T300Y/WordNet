@@ -16,17 +16,17 @@ all_sprites = pygame.sprite.Group()  # Declare all_sprites as a global variable
 class TextSprite(pygame.sprite.Sprite):
     def __init__(self, text, font_size, font_color, x, y, screen_width, screen_height):
         super().__init__()
-
+        self.text = text
         self.font = pygame.font.SysFont("arial", font_size)
         self.image = self.font.render(text, True, font_color)
         self.rect = self.image.get_rect()
         self.font_size = font_size
         self.rect.topleft = (x, y)
-        self.velocity = pygame.Vector2(1.5, 1.5)  # Fixed velocity
+        self.velocity = pygame.Vector2(1, 1)  # Fixed velocity
         self.width = screen_width
         self.height = screen_height
         self.draw_circle = False  # Flag to indicate if circle should be drawn
-
+        self.selected = False
 
     def update(self):
         self.rect.x += self.velocity.x
@@ -80,23 +80,32 @@ class TextSprite(pygame.sprite.Sprite):
         impulse = 2 * relative_velocity.dot(collision_normal)
         self.velocity = self.velocity
         other_sprite.velocity += impulse * collision_normal
+    def toggle_selected(self):
+        self.selected = not self.selected
+        if not self.selected:
+            self.draw_circle = False
 
-def draw_window():
+def draw_window(selected_sprites):
     WIN.fill(BLACK)
     all_sprites.update()
     all_sprites.draw(WIN)
     for sprite in all_sprites:
-        if sprite.draw_circle:
-            pygame.draw.circle(WIN, (255,255,255), sprite.rect.center, 50, 2)
-    pygame.display.flip()
+        if sprite.draw_circle or sprite in selected_sprites:
+            pygame.draw.circle(WIN, (255, 255, 255), sprite.rect.center, 50, 2)
+    selected_text = ''.join([sprite.text for sprite in selected_sprites])  # Use sprite.text
+    selected_font = pygame.font.SysFont("arial", 24)
+    selected_text_render = selected_font.render(selected_text, True, (255, 255, 255))
+    selected_text_rect = selected_text_render.get_rect(center=(WIDTH // 2, 30))
+    WIN.blit(selected_text_render, selected_text_rect)
 
+    pygame.display.flip()
 def main():
     array_of_sprites = []
     no_active_letters = 0
+    selected_sprites = []
 
     clock = pygame.time.Clock()
     run = True
-    selected_sprite = None  # Variable to keep track of the selected sprite
 
     while run:
         clock.tick(FPS)
@@ -108,17 +117,17 @@ def main():
                 mouse_position = pygame.mouse.get_pos()
                 for sprite in all_sprites:
                     if sprite.rect.collidepoint(mouse_position):
-                        if selected_sprite is not None:
-                            selected_sprite.draw_circle = False  # Deselect the previously selected sprite
-                        sprite.draw_circle = True  # Set the flag to draw circle for the clicked sprite
-                        selected_sprite = sprite  # Update the selected sprite
-                    else:
-                        sprite.draw_circle = False
+                        if sprite in selected_sprites:
+                            selected_sprites.remove(sprite)
+                            sprite.toggle_selected()
+                        else:
+                            selected_sprites.append(sprite)
+                            sprite.toggle_selected()
 
         if len(array_of_sprites) < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters)
 
-        draw_window()
+        draw_window(selected_sprites)
 
     pygame.quit()
 def random_letter():
