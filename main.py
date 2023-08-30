@@ -191,7 +191,7 @@ def word_score(word, dictionary):
     points = 0
     points += len(word)
     print(points)
-    #points *= (backwards_score(word, dictionary)* is_palindrome(word,dictionary) * is_rotatable(word, dictionary))
+    points *= (backwards_score(word, dictionary)* is_palindrome(word,dictionary) * is_rotatable(word, dictionary))
     print(points)
     points += embedded_word(word, dictionary)
     print(points)
