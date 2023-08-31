@@ -148,7 +148,7 @@ def main():
                     score = max(0, score - 1)  # Decrease score for incorrect word, but not below 0
 
         if len(array_of_sprites) < 15:
-            array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters)
+            array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
         draw_window(selected_sprites, score)  # Pass the score to the draw_window function
 
@@ -170,12 +170,17 @@ def random_letter():
             print(letter)
             return letter
 
-def letter_generator(array_of_sprites, no_of_sprites):
+def letter_generator(array_of_sprites, no_of_sprites, dictionary):
     global all_sprites
-
+    letters generated = []
+    While True:
+        letters_generated = [random_letter() for i in range(15)]
+        if check_letters(letters_generated, dictionary):
+            break
     while True:
         x = random.randint(50, WIDTH - 50)  # Adjusted the range to ensure some padding from the edges
         y = random.randint(50, HEIGHT - 50)  # Adjusted the range to ensure some padding from the edges
+        
         text_sprite = TextSprite(random_letter(), 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
         
         # Check for collisions with existing sprites
@@ -194,6 +199,8 @@ def letter_generator(array_of_sprites, no_of_sprites):
     return array_of_sprites, no_of_sprites
 
 def read_dict():
+
+    #Change this to a hash table and make a has function
     with open("words.txt") as file:
         lines=(file.readlines())
         lines = {(line.replace("\n", "")):False for line in lines}
@@ -245,5 +252,14 @@ def embedded_word(word, dictionary):
                     score += 10
     
     return score
+
+def check_letters(lttr_arr, dictionary):
+    #get dict of freq of letters in both lttr_arr and dictionary array
+
+    #compare to see if the is  sufficient freq of letters to match the selected word
+
+    #continue looping through  to find as many words matching with the letters
+
+
 if __name__ == '__main__':
     main()
