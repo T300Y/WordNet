@@ -155,7 +155,7 @@ def main():
 
     pygame.quit()
 def random_letter():
-    random = 0
+    rnum = 0
     ranges = {
     'a': 8167,  'b': 9659,  'c': 12441, 'd': 16694,
     'e': 29396, 'f': 31624, 'g': 33639, 'h': 39733,
@@ -165,9 +165,9 @@ def random_letter():
     'u': 94463, 'v': 95441, 'w': 97801, 'x': 97951,
     'y': 99925, 'z': 100000
     }
-    random = random.randint(0,100000)
+    rnum = random.randint(0,100000)
     for letter in ranges:
-        if random< ranges[letter]:
+        if rnum< ranges[letter]:
             print(letter)
             return letter
 
