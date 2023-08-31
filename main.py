@@ -85,14 +85,18 @@ class TextSprite(pygame.sprite.Sprite):
         if not self.selected:
             self.draw_circle = False
 
-def draw_window(selected_sprites, score):
+def draw_window(selected_sprites, score, selected_sprite_centers):
     WIN.fill(BLACK)
     all_sprites.update()
     all_sprites.draw(WIN)
     for sprite in all_sprites:
         if sprite.draw_circle or sprite in selected_sprites:
             pygame.draw.circle(WIN, (255, 255, 255), sprite.rect.center, 50, 2)
-    selected_text = ''.join([sprite.text for sprite in selected_sprites])  # Use sprite.text
+
+    for center in selected_sprite_centers:
+        pygame.draw.line(WIN, (255, 255, 255), center, selected_sprite_centers[-1], 2)
+
+    selected_text = ''.join([sprite.text for sprite in selected_sprites])
     selected_font = pygame.font.SysFont("arial", 24)
     selected_text_render = selected_font.render(selected_text, True, (255, 255, 255))
     selected_text_rect = selected_text_render.get_rect(center=(WIDTH // 2, 30))
@@ -106,14 +110,14 @@ def draw_window(selected_sprites, score):
     WIN.blit(score_text_render, score_text_rect)
 
     pygame.display.flip()
-    pygame.display.flip()
+  
 def main():
     dictionary = read_dict()
     array_of_sprites = []
     no_active_letters = 0
     selected_sprites = []
-    score = 0  # Initialize score to 0
-
+    selected_sprite_centers = []
+    score = 0
     clock = pygame.time.Clock()
     run = True
 
@@ -134,13 +138,14 @@ def main():
                             selected_sprites.append(sprite)
                             sprite.toggle_selected()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                # Check if selected letters form a valid word
+                    # Check if selected letters form a valid word
                 selected_text = ''.join([sprite.text for sprite in selected_sprites])
                 if selected_text in dictionary and not dictionary[selected_text]:
                     for sprite in selected_sprites:
                         sprite.toggle_selected()
                         all_sprites.remove(sprite)  # Remove the sprite from the group
-                        no_active_letters -=1
+                        no_active_letters -= 1
+                        selected_sprite_centers.append(sprite.rect.center)
                     dictionary[selected_text] = True
                     selected_sprites.clear()
                     score += word_score(selected_text, dictionary)  # Increment score for correct word
@@ -151,7 +156,7 @@ def main():
         if no_active_letters < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
-        draw_window(selected_sprites, score)  # Pass the score to the draw_window function
+        draw_window(selected_sprites, score, selected_sprite_centers)  # Pass the lines to the draw_window function
 
     pygame.quit()
 def random_letter():
