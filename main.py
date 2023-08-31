@@ -148,21 +148,39 @@ def main():
                     score = max(0, score - 1)  # Decrease score for incorrect word, but not below 0
 
         if len(array_of_sprites) < 15:
-            array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters)
+            array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
         draw_window(selected_sprites, score)  # Pass the score to the draw_window function
 
     pygame.quit()
 def random_letter():
-    alphabet = list(string.ascii_lowercase)
-    return alphabet[random.randint(0, len(alphabet) - 1)]
+    random = 0
+    ranges = {
+    'a': 8167,  'b': 9659,  'c': 12441, 'd': 16694,
+    'e': 29396, 'f': 31624, 'g': 33639, 'h': 39733,
+    'i': 46699, 'j': 46852, 'k': 47624, 'l': 51649,
+    'm': 54055, 'n': 60804, 'o': 68311, 'p': 70240,
+    'q': 70335, 'r': 76322, 's': 82649, 't': 91705,
+    'u': 94463, 'v': 95441, 'w': 97801, 'x': 97951,
+    'y': 99925, 'z': 100000
+    }
+    random = random.randint(0,100000)
+    for letter in alphabet:
+        if random< alphabet[letter]:
+            print(letter)
+            return letter
 
-def letter_generator(array_of_sprites, no_of_sprites):
+def letter_generator(array_of_sprites, no_of_sprites, dictionary):
     global all_sprites
-
+    letters_generated = []
+    while True:
+        letters_generated = [random_letter() for i in range(15)]
+        if check_letters(letters_generated, dictionary):
+            break
     while True:
         x = random.randint(50, WIDTH - 50)  # Adjusted the range to ensure some padding from the edges
         y = random.randint(50, HEIGHT - 50)  # Adjusted the range to ensure some padding from the edges
+        
         text_sprite = TextSprite(random_letter(), 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
         
         # Check for collisions with existing sprites
@@ -181,6 +199,8 @@ def letter_generator(array_of_sprites, no_of_sprites):
     return array_of_sprites, no_of_sprites
 
 def read_dict():
+
+    #Change this to a hash table and make a has function
     with open("words.txt") as file:
         lines=(file.readlines())
         lines = {(line.replace("\n", "")):False for line in lines}
@@ -232,5 +252,43 @@ def embedded_word(word, dictionary):
                     score += 10
     
     return score
+
+def check_letters(lttr_arr, dictionary):
+    selected_letter_freq = {}
+    
+    # Count the frequency of each letter in the selected letters array
+    for letter in lttr_arr:
+        if letter in selected_letter_freq:
+            selected_letter_freq[letter] += 1
+        else:
+            selected_letter_freq[letter] = 1
+    
+    valid_words = 0
+    
+    # Iterate through the words in the dictionary
+    for word in dictionary:
+        word_letter_freq = {}
+        
+        # Count the frequency of each letter in the word
+        for letter in word:
+            if letter in word_letter_freq:
+                word_letter_freq[letter] += 1
+            else:
+                word_letter_freq[letter] = 1
+        
+        # Compare the letter frequencies of the word and selected letters
+        is_valid_word = True
+        for letter, freq in word_letter_freq.items():
+            if letter not in selected_letter_freq or selected_letter_freq[letter] < freq:
+                is_valid_word = False
+                break
+        
+        if is_valid_word:
+            valid_words += 1
+    
+    return valid_words
+
+
+
 if __name__ == '__main__':
     main()
