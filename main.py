@@ -140,6 +140,7 @@ def main():
                     for sprite in selected_sprites:
                         sprite.toggle_selected()
                         all_sprites.remove(sprite)  # Remove the sprite from the group
+                        no_active_letters -=1
                     dictionary[selected_text] = True
                     selected_sprites.clear()
                     score += word_score(selected_text, dictionary)  # Increment score for correct word
@@ -147,7 +148,7 @@ def main():
                     selected_sprites.clear()
                     score = max(0, score - 1)  # Decrease score for incorrect word, but not below 0
 
-        if len(array_of_sprites) < 15:
+        if no_active_letters < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
         draw_window(selected_sprites, score)  # Pass the score to the draw_window function
@@ -165,25 +166,28 @@ def random_letter():
     'y': 99925, 'z': 100000
     }
     random = random.randint(0,100000)
-    for letter in alphabet:
-        if random< alphabet[letter]:
+    for letter in ranges:
+        if random< ranges[letter]:
             print(letter)
             return letter
 
 def letter_generator(array_of_sprites, no_of_sprites, dictionary):
     global all_sprites
     letters_generated = []
+    counter = 15 - no_of_sprites
+    
     while True:
-        letters_generated = [random_letter() for i in range(15)]
-        if check_letters(letters_generated, dictionary):
+        letters_generated = [random_letter() for i in range(counter)]
+        combined_letters = [sprite.text for sprite in all_sprites] + letters_generated
+        if check_letters(combined_letters, dictionary) > 0:
             break
-    while True:
-        x = random.randint(50, WIDTH - 50)  # Adjusted the range to ensure some padding from the edges
-        y = random.randint(50, HEIGHT - 50)  # Adjusted the range to ensure some padding from the edges
+    
+    for letter in letters_generated:
+        x = random.randint(50, WIDTH - 50)
+        y = random.randint(50, HEIGHT - 50)
         
-        text_sprite = TextSprite(random_letter(), 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
+        text_sprite = TextSprite(letter, 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
         
-        # Check for collisions with existing sprites
         collision = False
         for sprite in all_sprites:
             if sprite != text_sprite and text_sprite.check_collision(sprite):
