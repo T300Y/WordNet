@@ -6,7 +6,8 @@ import math
 WIDTH, HEIGHT = 1920, 1080
 FPS = 60
 BLACK = (0, 0, 0)
-
+BONUS_DISPLAY_DURATION = 2
+bonus_messages = []
 pygame.init()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("WordNet")
@@ -85,7 +86,7 @@ class TextSprite(pygame.sprite.Sprite):
         if not self.selected:
             self.draw_circle = False
 
-def draw_window(selected_sprites, score, selected_sprite_centers):
+def draw_window(selected_sprites, score, selected_sprite_centers, bonus_message):
     WIN.fill(BLACK)
     all_sprites.update()
     all_sprites.draw(WIN)
@@ -109,8 +110,16 @@ def draw_window(selected_sprites, score, selected_sprite_centers):
     score_text_rect = score_text_render.get_rect(topright=(WIDTH - 20, 20))
     WIN.blit(score_text_render, score_text_rect)
 
+    # Display bonus message
+    current_time = pygame.time.get_ticks()
+    for message, expiration_time in bonus_messages:
+        if current_time < expiration_time:
+            bonus_font = pygame.font.SysFont("arial", 24)
+            bonus_render = bonus_font.render(message, True, (255, 255, 0))
+            bonus_rect = bonus_render.get_rect(center=(WIDTH // 2, 60))
+            WIN.blit(bonus_render, bonus_rect)
     pygame.display.flip()
-  
+
 def main():
     dictionary = read_dict()
     array_of_sprites = []
@@ -120,9 +129,13 @@ def main():
     score = 0
     clock = pygame.time.Clock()
     run = True
+    global bonus_messages
 
     while run:
         clock.tick(FPS)
+        current_time = pygame.time.get_ticks()
+        bonus_messages = [message for message in bonus_messages if message[1] > current_time]
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -156,7 +169,7 @@ def main():
         if no_active_letters < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
-        draw_window(selected_sprites, score, selected_sprite_centers)  # Pass the lines to the draw_window function
+        draw_window(selected_sprites, score, selected_sprite_centers, bonus_messages)   # Pass the lines to the draw_window function
 
     pygame.quit()
 def random_letter():
@@ -219,13 +232,21 @@ def read_dict():
 def word_score(word, dictionary):
     points = 0
     points += len(word)
-    print(points)
-    points *= (backwards_score(word, dictionary)* is_palindrome(word,dictionary) * is_rotatable(word, dictionary))
-    print(points)
+
+    # Calculate the bonus multiplier based on various conditions
+    bonus_multiplier = (
+        backwards_score(word, dictionary) *
+        is_palindrome(word, dictionary) *
+        is_rotatable(word, dictionary)
+    )
+
+    if bonus_multiplier > 1:
+        bonus_messages.append((f"Bonus! x{bonus_multiplier}", pygame.time.get_ticks() + BONUS_DISPLAY_DURATION * 1000))
+
+    points *= bonus_multiplier
     points += embedded_word(word, dictionary)
-    print(points)
-    return points
     
+    return points
     
 def backwards_score(word, dictionary):
     word = word[::-1]
