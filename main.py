@@ -1,13 +1,13 @@
 import pygame
-import string
 import random
-import math
 # Globals
 WIDTH, HEIGHT = 1920, 1080
 FPS = 60
 BLACK = (0, 0, 0)
 BONUS_DISPLAY_DURATION = 2
 bonus_messages = []
+ENCOURAGEMENT_DISPLAY_DURATION = 2  # Duration of encouragement message display in seconds
+encouragement_messages = []  
 pygame.init()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("WordNet")
@@ -46,15 +46,7 @@ class TextSprite(pygame.sprite.Sprite):
         if self.rect.bottom > self.height:
             self.rect.bottom = self.height
             self.velocity.y *= -1
-
-        #collide_list = pygame.sprite.spritecollide(self, all_sprites, False)
-        #for sprite in collide_list:
-            #if sprite != self:
-              #  if self.check_collision(sprite):
-                 #   self.resolve_collision(sprite)
-                  #  self.rect.move_ip(-self.velocity.x, -self.velocity.y)
-              #  break
-
+    #checks for collision between sprites
     def check_collision(self, other_sprite):
         axes = [self.velocity.normalize(), pygame.Vector2(-self.velocity.y, self.velocity.x).normalize()]
         for axis in axes:
@@ -64,7 +56,7 @@ class TextSprite(pygame.sprite.Sprite):
             if proj_self[0] > proj_other[1] or proj_self[1] < proj_other[0]:
                 return False
         return True
-
+    #gets the corners of sprites rect
     def get_corners(self):
         corners = [
             self.rect.topleft,
@@ -73,22 +65,16 @@ class TextSprite(pygame.sprite.Sprite):
             self.rect.bottomright
         ]
         return corners
-
-    def resolve_collision(self, other_sprite):
-        relative_velocity = self.velocity - other_sprite.velocity
-        collision_normal = pygame.Vector2(other_sprite.rect.center) - pygame.Vector2(self.rect.center)
-        collision_normal = collision_normal.normalize()
-        impulse = 2 * relative_velocity.dot(collision_normal)
-        self.velocity = self.velocity
-        other_sprite.velocity += impulse * collision_normal
+    #sets parm if sprite selected by mouse
     def toggle_selected(self):
         self.selected = not self.selected
         if not self.selected:
             self.draw_circle = False
-
-def draw_window(selected_sprites, score, selected_sprite_centers, bonus_message):
+#renders all elements on screen
+def draw_window(selected_sprites, score, selected_sprite_centers):
     WIN.fill(BLACK)
     all_sprites.update()
+    global encouragement_messages, bonus_messages
     all_sprites.draw(WIN)
     for sprite in all_sprites:
         if sprite.draw_circle or sprite in selected_sprites:
@@ -118,6 +104,12 @@ def draw_window(selected_sprites, score, selected_sprite_centers, bonus_message)
             bonus_render = bonus_font.render(message, True, (255, 255, 0))
             bonus_rect = bonus_render.get_rect(center=(WIDTH // 2, 60))
             WIN.blit(bonus_render, bonus_rect)
+    for message, expiration_time in encouragement_messages:
+        if current_time < expiration_time:
+            encouragement_font = pygame.font.SysFont("arial", 24)
+            encouragement_render = encouragement_font.render(message, True, (0, 255, 0))
+            encouragement_rect = encouragement_render.get_rect(center=(WIDTH // 2, 90))
+            WIN.blit(encouragement_render, encouragement_rect)
     pygame.display.flip()
 
 def main():
@@ -129,13 +121,13 @@ def main():
     score = 0
     clock = pygame.time.Clock()
     run = True
-    global bonus_messages
+    global bonus_messages, encouragement_messages
 
     while run:
         clock.tick(FPS)
         current_time = pygame.time.get_ticks()
         bonus_messages = [message for message in bonus_messages if message[1] > current_time]
-
+        encouragement_messages = [message for message in encouragement_messages if message[1] > current_time]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -169,9 +161,10 @@ def main():
         if no_active_letters < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
 
-        draw_window(selected_sprites, score, selected_sprite_centers, bonus_messages)   # Pass the lines to the draw_window function
+        draw_window(selected_sprites, score, selected_sprite_centers)   # Pass the lines to the draw_window function
 
     pygame.quit()
+    #Generates a random letter based on their frequency in the English language
 def random_letter():
     rnum = 0
     ranges = {
@@ -186,14 +179,13 @@ def random_letter():
     rnum = random.randint(0,100000)
     for letter in ranges:
         if rnum< ranges[letter]:
-            print(letter)
-            return letter
 
+            return letter
+#Generates new letters and determines if there are any collisions between letters and if a word can be made from the letters
 def letter_generator(array_of_sprites, no_of_sprites, dictionary):
     global all_sprites
     letters_generated = []
     counter = 15 - no_of_sprites
-    
     while True:
         letters_generated = [random_letter() for i in range(counter)]
         combined_letters = [sprite.text for sprite in all_sprites] + letters_generated
@@ -219,7 +211,7 @@ def letter_generator(array_of_sprites, no_of_sprites, dictionary):
             break
 
     return array_of_sprites, no_of_sprites
-
+#reads dict into memory
 def read_dict():
 
     #Change this to a hash table and make a has function
@@ -228,32 +220,45 @@ def read_dict():
         lines = {(line.replace("\n", "")):False for line in lines}
     file.close()
     return lines
-
+#Determines the bonus multiplier and bonus points aa word should receive
 def word_score(word, dictionary):
     points = 0
-    points += len(word)
+    global bonus_messages, encouragement_messages
+    # Initialize bonus multiplier
+    bonus_multiplier = 1
 
-    # Calculate the bonus multiplier based on various conditions
-    bonus_multiplier = (
-        backwards_score(word, dictionary) *
-        is_palindrome(word, dictionary) *
-        is_rotatable(word, dictionary)
-    )
+    # Check bonus conditions and update bonus multiplier
+    bonus_multiplier *= backwards_score(word, dictionary)
+    bonus_multiplier *= is_palindrome(word, dictionary)
+    bonus_multiplier *= is_rotatable(word, dictionary)
 
     if bonus_multiplier > 1:
         bonus_messages.append((f"Bonus! x{bonus_multiplier}", pygame.time.get_ticks() + BONUS_DISPLAY_DURATION * 1000))
+    
+    # Calculate the base points for the word
+    points += len(word)
 
+    # Apply the bonus multiplier
     points *= bonus_multiplier
+
+    # Calculate the score based on embedded words
     points += embedded_word(word, dictionary)
-    
-    return points
-    
-def backwards_score(word, dictionary):
-    word = word[::-1]
-    if word in dictionary:
-        return 2
+
+    # Update encouragement messages
+    if word in dictionary and dictionary[word]:
+        encouragement_messages.append(("Wow!", pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
     else:
-        return 1
+        encouragement_messages.append(("Better luck next time!", pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
+
+    return points
+def backwards_score(word, dictionary):
+    wordy = word[::-1]
+    for _ in dictionary:
+        if wordy == _ and word != wordy:
+    
+            return 2
+   
+    return 1
     
 def is_palindrome(word, dictionary):
     palindrome = word[::-1]
@@ -263,26 +268,28 @@ def is_palindrome(word, dictionary):
         return 1
 def is_rotatable(word, dictionary):
     new_word = word[1:] + word[0]
-    if new_word in dictionary:
-        return 10
-    else:
-        return 1
-            
+    for _ in dictionary:
+        if new_word == _:
+            return 10
+    
+    return 1
+#Checks every substring of a word to see if it is also a word   
 def embedded_word(word, dictionary):
     score = 0
     word_length = len(word)
-    
     for i in range(word_length):
         for j in range(i + 1, word_length + 1):
             subword = word[i:j]
-            if subword in dictionary and subword != word:
-                if dictionary[subword]:
-                    print(subword)
-                    print(dictionary[subword])
-                    score += 10
+            if len(word[i:j]) < 3:
+                continue
+            for wordy in dictionary:
+                if len(wordy) == len(word[i:j]):
+                    if wordy == word[i:j] and word != word[i:j]:
+                        score +=10
+                        break
     
     return score
-
+#Checks the letters generated by letter generator and determines if they can make a word in the dictionary using the frequency of each letter
 def check_letters(lttr_arr, dictionary):
     selected_letter_freq = {}
     
@@ -309,7 +316,7 @@ def check_letters(lttr_arr, dictionary):
         # Compare the letter frequencies of the word and selected letters
         is_valid_word = True
         for letter, freq in word_letter_freq.items():
-            if letter not in selected_letter_freq or selected_letter_freq[letter] < freq:
+            if letter not in selected_letter_freq or selected_letter_freq[letter] < freq :
                 is_valid_word = False
                 break
         
