@@ -4,9 +4,9 @@ import random
 WIDTH, HEIGHT = 1920, 1080
 FPS = 60
 BLACK = (0, 0, 0)
-BONUS_DISPLAY_DURATION = 2
+BONUS_DISPLAY_DURATION = 3
 bonus_messages = []
-ENCOURAGEMENT_DISPLAY_DURATION = 2  # Duration of encouragement message display in seconds
+ENCOURAGEMENT_DISPLAY_DURATION = 3  # Duration of encouragement message display in seconds
 encouragement_messages = []  
 pygame.init()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -101,15 +101,15 @@ def draw_window(selected_sprites, score, selected_sprite_centers):
     for message, expiration_time in bonus_messages:
         if current_time < expiration_time:
             bonus_font = pygame.font.SysFont("arial", 24)
-            bonus_render = bonus_font.render(message, True, (255, 255, 0))
-            bonus_rect = bonus_render.get_rect(center=(WIDTH // 2, 60))
-            WIN.blit(bonus_render, bonus_rect)
+            bonus_text_render = bonus_font.render(message, True, (255, 255, 0))
+            bonus_text_rect = bonus_text_render.get_rect(center=(WIDTH // 2, 60))
+            WIN.blit(bonus_text_render, bonus_text_rect)
     for message, expiration_time in encouragement_messages:
         if current_time < expiration_time:
             encouragement_font = pygame.font.SysFont("arial", 24)
-            encouragement_render = encouragement_font.render(message, True, (0, 255, 0))
-            encouragement_rect = encouragement_render.get_rect(center=(WIDTH // 2, 90))
-            WIN.blit(encouragement_render, encouragement_rect)
+            encouragement_text_render = encouragement_font.render(message, True, (0, 255, 0))
+            encouragement_text_rect = encouragement_text_render.get_rect(center=(WIDTH // 2, 90))
+            WIN.blit(encouragement_text_render, encouragement_text_rect)
     pygame.display.flip()
 
 def main():
@@ -155,8 +155,17 @@ def main():
                     selected_sprites.clear()
                     score += word_score(selected_text, dictionary)  # Increment score for correct word
                 else:
+                    encouragement_messages.append((random.choice(("Better luck next time!", "Wrong, Try Again ;)", "Keep going!")), pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
+                    # Clear selected sprites if the word is incorrect
+                    for sprite in selected_sprites:
+                        sprite.toggle_selected()
                     selected_sprites.clear()
-                    score = max(0, score - 1)  # Decrease score for incorrect word, but not below 0
+                    # Remove the letters used for the incorrect word
+                    for letter in selected_text:
+                        for sprite in all_sprites:
+                            if sprite.text == letter:
+                                all_sprites.remove(sprite)
+                                no_active_letters -= 1
 
         if no_active_letters < 15:
             array_of_sprites, no_active_letters = letter_generator(array_of_sprites, no_active_letters, dictionary)
@@ -196,7 +205,7 @@ def letter_generator(array_of_sprites, no_of_sprites, dictionary):
         x = random.randint(50, WIDTH - 50)
         y = random.randint(50, HEIGHT - 50)
         
-        text_sprite = TextSprite(letter, 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
+        text_sprite  = TextSprite(letter, 36, (255, 0, 0), x, y, WIDTH, HEIGHT)
         
         collision = False
         for sprite in all_sprites:
@@ -246,9 +255,7 @@ def word_score(word, dictionary):
 
     # Update encouragement messages
     if word in dictionary and dictionary[word]:
-        encouragement_messages.append(("Wow!", pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
-    else:
-        encouragement_messages.append(("Better luck next time!", pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
+        encouragement_messages.append((random.choice(("Wow!", "Great Work!!!", "Amzaing")), pygame.time.get_ticks() + ENCOURAGEMENT_DISPLAY_DURATION * 1000))
 
     return points
 def backwards_score(word, dictionary):
@@ -271,7 +278,6 @@ def is_rotatable(word, dictionary):
     for _ in dictionary:
         if new_word == _:
             return 10
-    
     return 1
 #Checks every substring of a word to see if it is also a word   
 def embedded_word(word, dictionary):
@@ -279,14 +285,12 @@ def embedded_word(word, dictionary):
     word_length = len(word)
     for i in range(word_length):
         for j in range(i + 1, word_length + 1):
-            subword = word[i:j]
-            if len(word[i:j]) < 3:
-                continue
-            for wordy in dictionary:
-                if len(wordy) == len(word[i:j]):
-                    if wordy == word[i:j] and word != word[i:j]:
-                        score +=10
-                        break
+            if len(word[i:j]) > 2:
+                for wordy in dictionary:
+                    if len(wordy) == len(word[i:j]):
+                        if wordy == word[i:j] and word != word[i:j]:
+                            score +=10
+                            break
     
     return score
 #Checks the letters generated by letter generator and determines if they can make a word in the dictionary using the frequency of each letter
