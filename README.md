@@ -36,9 +36,53 @@
 
 
 #### Structure Chart
-![structure_chart](https://github.com/T300Y/WordNet/assets/86957414/d5685d77-d7d0-4708-81aa-164dc54cced0)
+![IMG_2818](https://github.com/T300Y/WordNet/assets/86957414/f7957773-4bd9-4423-ad1e-5c9a94e54502)
 
-### Algorithm-level planning 
+| Variable Name | Key |
+| --- | --- |
+| Array of sprites | AOS |
+| dictionary | DICT |
+| Selected sprites array | SS |
+| Selected sprite centers | SSC |
+| Number of sprites | NOS  |
+| Lttr array | LA |
+| Valid_words | VW |
+| text | T |
+| Font size | FS |
+| Font color | FC |
+| Screen width | SW |
+| Screen height | SH |
+| Other sprite | OS |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Algorithm-level planning - is_palindrome
+
+#### Psuedocode
+
+    BEGIN is_palindrome(word, dictionary)
+        palindrome= ReverseString(word)
+    
+        IF palindrome EQUALS word THEN
+            RETURN 5
+        ELSE
+            RETURN 1
+        END IF
+    END FUNCTION
 
 #### Flow Chart
 ![flow chart](https://github.com/T300Y/WordNet/assets/86957414/ea3042d3-ad46-4d9e-a480-09d9d32b13e6)
