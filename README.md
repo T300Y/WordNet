@@ -55,21 +55,6 @@
 | Other sprite | OS |
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Algorithm-level planning - is_palindrome
 
 #### Psuedocode
@@ -87,5 +72,32 @@
 #### Flow Chart
 ![flow chart](https://github.com/T300Y/WordNet/assets/86957414/ea3042d3-ad46-4d9e-a480-09d9d32b13e6)
 
+#### IPO Table 
 
-#### Implementing phase
+|Function Name | Input | Process | Output |
+| --- | --- | --- | --- |
+| is_palindrome | Word(String) and Dictionary(dictionary data class), A mutable and unordered container in python containing keys and value pairs | The inputted word is first reversed through using pythons array indexes. Whereby it loops through the string from end to front and adds it into an array. It then adds each of these array indexations back into a string and the word is reversed. It then adds this reversed word to the palindrome variable(string). It then checks if the palindrome variable is equal to the word if they are equal the program returns 5(int) which is the bonus score for having a palindrome word.Otherwise it returns 1(int) so that the bonus multiplier remains unchanged | The output is an integer either 5 or 1 as explained in the process. This is the bonus multiplier for having a palindrome word |
+
+
+
+### Implementing phase
+
+
+| Feature Name | Completed |
+| --- | --- |
+| letters bouncing | :heavy_check_mark: |
+| lines drawn between letters of completed word | :heavy_check_mark: |
+| selection of letter and add to current word | :heavy_check_mark: |
+| deselection of letter and remove single instance from word | :heavy_check_mark: |
+| occasionally add a new letter | :heavy_check_mark: |
+| accept submitted words only if in dictionary | :heavy_check_mark: |
+| remove submitted letters  only if word is in dictionary | :heavy_check_mark: |
+| random feedback for positive and negative events | :heavy_check_mark: |
+| Small fading message for BONUS multiplier | :heavy_check_mark: |
+| Letter spawn rate adjussted to their frequency in english language | :heavy_check_mark: |
+|a visible score | :heavy_check_mark: |
+| base points given based on length of word(+1 point per char) | :heavy_check_mark: |
+| double points for words that spell other words backwards | :heavy_check_mark: |
+| 5x for words that are palindromes | :heavy_check_mark: |
+| 10x for rotatable words | :heavy_check_mark: |
+| +10 points for embedded words | :heavy_check_mark: |
