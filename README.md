@@ -60,7 +60,12 @@
 #### Psuedocode
 
     BEGIN is_palindrome(word, dictionary)
-        wod_length = LENGTH(word)
+        word_length = 0
+        counter = 0
+        While True:
+            if word[counter] != "\0":
+                word_length+= 1
+            counter +=1
         palindrome = ""
         FOR i = word_length-1 TO 0 step -1
             palindrome[(word_length-1)-i] = word[i]
