@@ -63,10 +63,10 @@
         word_length = 0
         counter = 0
         While True:
-            if word[counter] != "\0":
+            IF word[word-length] DOES NOT EQUAL "\0":
                 word_length+= 1
-            counter +=1
-        palindrome = ""
+            ELSE
+                BREAK
         FOR i = word_length-1 TO 0 step -1
             palindrome[(word_length-1)-i] = word[i]
         IF palindrome EQUALS word THEN
