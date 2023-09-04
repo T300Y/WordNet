@@ -77,7 +77,7 @@
     END FUNCTION
 
 #### Flow Chart
-![flow chart](https://github.com/T300Y/WordNet/assets/86957414/ea3042d3-ad46-4d9e-a480-09d9d32b13e6)
+![image](https://github.com/T300Y/WordNet/assets/86957414/84111d54-4744-4097-9b73-5978cd00eb2f)
 
 #### IPO Table 
 
