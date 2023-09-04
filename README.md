@@ -60,8 +60,10 @@
 #### Psuedocode
 
     BEGIN is_palindrome(word, dictionary)
-        palindrome= ReverseString(word)
-    
+        wod_length = LENGTH(word)
+        palindrome = ""
+        FOR i = word_length-1 TO 0 step -1
+            palindrome[(word_length-1)-i] = word[i]
         IF palindrome EQUALS word THEN
             RETURN 5
         ELSE
